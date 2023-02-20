@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { useUserStore, type User } from "@/stores/user";
 import { onKeyStroke, useElementHover } from "@vueuse/core";
-import { ref } from "vue";
+import { computed, ref, type ComputedRef } from "vue";
 
 import ModalComponent from "./ModalComponent.vue";
+import Avatar from "@/components/ReusableComponents/AvatarWidget.vue";
 
 const isModalActive = ref(false);
 
@@ -16,15 +18,20 @@ onKeyStroke("Control" && "b", () => {
 
 const hoverButtonTip = ref();
 const isHovered = useElementHover(hoverButtonTip);
+
+const user: ComputedRef<User | null> = computed(() => useUserStore().getUser);
 </script>
 
 <template>
   <main class="header-container">
     <div class="header-content">
       <img src="@/assets/logo.svg" alt="Logo image" />
-      <button ref="hoverButtonTip" class="button" @click="toggleModal">
-        {{ isHovered ? "Pressione CTRL + B" : "Nova Transação" }}
-      </button>
+      <div class="header-right-wrapper">
+        <button ref="hoverButtonTip" class="button" @click="toggleModal">
+          {{ isHovered ? "Pressione CTRL + B" : "Nova Transação" }}
+        </button>
+        <Avatar :image="user?.avatarUrl" @click="useUserStore().logout()" />
+      </div>
     </div>
     <ModalComponent v-if="isModalActive" @toggle-modal="toggleModal" />
   </main>
@@ -44,6 +51,12 @@ const isHovered = useElementHover(hoverButtonTip);
     display: flex;
     justify-content: space-between;
     align-items: center;
+
+    .header-right-wrapper {
+      display: flex;
+      gap: 3rem;
+      align-items: center;
+    }
 
     .button {
       height: 50px;

@@ -1,40 +1,62 @@
 <script setup lang="ts">
+import { onMounted, ref, type Ref } from "vue";
+
+import { deskree } from "@/deskree";
+
 import moment from "moment";
+import LoadingWidget from "../ReusableComponents/LoadingWidget.vue";
 
-const transactions = [
-  {
-    id: 1,
-    title: "Desenvolvimento de site",
-    type: "income",
-    category: "Venda",
-    amount: 12000,
-    createdAt: new Date("2023-02-12 09:00:00"),
-  },
-  {
-    id: 2,
-    title: "Aluguel",
-    type: "outcome",
-    category: "Moradia",
-    amount: 1200,
-    createdAt: new Date("2023-02-14 11:00:00"),
-  },
-];
+type Transaction = {
+  uid: string;
+  description: string;
+  category: string;
+  type: string;
+  amount: string;
+  createdAt: string;
+};
 
-const formatAmountToBrl = (amount: number) => {
-  return amount.toLocaleString("pt-BR", {
+const transactions: Ref<Transaction[]> = ref([]);
+
+const isLoading = ref(false);
+
+async function getAllTransactions() {
+  try {
+    isLoading.value = true;
+    const response = await deskree.database().from("transactions").get();
+    const transactionArray = response.data.data;
+    transactions.value = transactionArray.map((transaction: any) => {
+      return {
+        ...transaction.attributes,
+        uid: transaction.uid,
+      };
+    });
+  } catch (e) {
+    console.error(e);
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+const formatAmountToBrl = (amount: string) => {
+  const newAmount = parseFloat(amount);
+  return newAmount.toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL",
   });
 };
+
+onMounted(async () => {
+  await getAllTransactions();
+});
 </script>
 
 <template>
   <main class="table-container">
-    <table>
+    <table v-if="!isLoading">
       <tbody>
-        <tr v-for="transaction in transactions" :key="transaction.id">
+        <tr v-for="transaction in transactions" :key="transaction.uid">
           <td>
-            <strong>{{ transaction.title }}</strong>
+            <strong>{{ transaction.description }}</strong>
           </td>
           <td
             :style="
@@ -50,6 +72,7 @@ const formatAmountToBrl = (amount: number) => {
         </tr>
       </tbody>
     </table>
+    <LoadingWidget width="4rem" height="4rem" class="loading" v-else />
   </main>
 </template>
 
@@ -80,6 +103,10 @@ const formatAmountToBrl = (amount: number) => {
         border-bottom-right-radius: 6px;
       }
     }
+  }
+
+  .loading {
+    margin: 0 auto;
   }
 }
 </style>

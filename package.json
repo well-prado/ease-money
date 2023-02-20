@@ -8,11 +8,18 @@
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --noEmit",
+    "deskree-interfaces": "tsc ./src/deskree-interfaces.ts --outDir ./dist && node ./dist/deskree-interfaces.js",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "@deskree/deskree-js": "^1.1.10",
     "@vueuse/core": "^9.12.0",
+    "@vueuse/integrations": "^9.13.0",
+    "async-validator": "^4.2.5",
+    "axios": "^1.3.3",
     "moment": "^2.29.4",
+    "pinia": "^2.0.30",
+    "universal-cookie": "^4.0.4",
     "vue": "^3.2.45",
     "vue-router": "^4.1.6"
   },

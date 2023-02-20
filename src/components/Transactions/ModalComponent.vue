@@ -2,6 +2,8 @@
 import { onMounted, ref } from "vue";
 
 import { onClickOutside, onKeyStroke } from "@vueuse/core";
+import { deskree } from "@/deskree";
+import LoadingWidget from "../ReusableComponents/LoadingWidget.vue";
 
 const target = ref<HTMLElement | null>(null);
 
@@ -13,16 +15,31 @@ onKeyStroke("Escape", () => {
   emit("toggleModal");
 });
 
-onKeyStroke("Enter", () => {
-  // emit("toggleModal");
-  console.log("Enter");
-});
+// onKeyStroke("Enter", () => {
+//   emit("toggleModal");
+//   console.log("Enter");
+// });
 
 const emit = defineEmits(["toggleModal"]);
 
-const onSubmit = (e: Event) => {
-  console.log("Submit");
-};
+const isLoading = ref(false);
+
+async function onSubmit() {
+  try {
+    isLoading.value = true;
+    await deskree.database().from("transactions").create({
+      description: transactionObject.value.description,
+      category: transactionObject.value.category,
+      type: transactionObject.value.type,
+      amount: transactionObject.value.amount,
+    });
+    emit("toggleModal");
+  } catch (e) {
+    console.error(e);
+  } finally {
+    isLoading.value = false;
+  }
+}
 
 const focusFirstInput = () => {
   const input = document.getElementById("title");
@@ -35,11 +52,23 @@ onMounted(() => {
   focusFirstInput();
 });
 
-const checked = ref("outcome");
-
 const focusInput = (inputType: string) => {
   const input = document.getElementById(inputType);
   input?.click();
+};
+
+const transactionObject = ref({
+  description: "",
+  category: "",
+  type: "" as any,
+  amount: "",
+});
+
+const formatCurrency = (value: number) => {
+  return value.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
 };
 </script>
 
@@ -60,6 +89,7 @@ const focusInput = (inputType: string) => {
         <form @submit.prevent="onSubmit">
           <div class="input-group">
             <input
+              v-model="transactionObject.description"
               type="text"
               id="title"
               placeholder="Descrição"
@@ -68,10 +98,22 @@ const focusInput = (inputType: string) => {
             />
           </div>
           <div class="input-group">
-            <input type="number" id="amount" placeholder="Valor" required />
+            <input
+              v-model="transactionObject.amount"
+              type="text"
+              id="amount"
+              placeholder="Valor"
+              required
+            />
           </div>
           <div class="input-group">
-            <input type="text" id="category" placeholder="Categoria" required />
+            <input
+              v-model="transactionObject.category"
+              type="text"
+              id="category"
+              placeholder="Categoria"
+              required
+            />
           </div>
 
           <div class="transaction-type">
@@ -79,16 +121,17 @@ const focusInput = (inputType: string) => {
               class="transaction-type-income"
               @click="focusInput('income')"
               :class="{
-                'transaction-type-income-active': checked === 'income',
+                'transaction-type-income-active':
+                  transactionObject.type === 'income',
               }"
             >
               <img src="@/assets/income.svg" alt="Entrada" />
               <input
+                v-model="transactionObject.type"
                 type="radio"
                 name="type"
                 id="income"
                 value="income"
-                v-model="checked"
               />
               <label for="income">Entrada</label>
             </div>
@@ -96,21 +139,25 @@ const focusInput = (inputType: string) => {
               class="transaction-type-outcome"
               @click="focusInput('outcome')"
               :class="{
-                'transaction-type-outcome-active': checked === 'outcome',
+                'transaction-type-outcome-active':
+                  transactionObject.type === 'outcome',
               }"
             >
               <img src="@/assets/outcome.svg" alt="Saída" />
               <input
+                v-model="transactionObject.type"
                 type="radio"
                 name="type"
                 id="outcome"
                 value="outcome"
-                v-model="checked"
               />
               <label for="outcome">Saída</label>
             </div>
           </div>
-          <button type="submit">Salvar</button>
+          <button type="submit" :disabled="isLoading">
+            <LoadingWidget v-if="isLoading" />
+            <span v-else>Salvar</span>
+          </button>
         </form>
         <p class="footer-tip">
           Pressione <strong>ESC</strong> para fechar ou
@@ -210,6 +257,11 @@ const focusInput = (inputType: string) => {
         &:hover {
           filter: brightness(0.9);
         }
+
+        &:disabled {
+          cursor: not-allowed;
+          opacity: 0.6;
+        }
       }
 
       .transaction-type {
@@ -232,6 +284,10 @@ const focusInput = (inputType: string) => {
           cursor: pointer;
           width: 100%;
 
+          label {
+            cursor: pointer;
+          }
+
           &:hover {
             filter: brightness(0.9);
             transition: filter 0.2s;
@@ -250,6 +306,10 @@ const focusInput = (inputType: string) => {
           color: $gray-300;
           cursor: pointer;
           width: 100%;
+
+          label {
+            cursor: pointer;
+          }
 
           &:hover {
             filter: brightness(0.9);
