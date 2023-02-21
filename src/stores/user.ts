@@ -70,6 +70,8 @@ export const useUserStore = defineStore("user", {
       useCookies().set("refresh_token", refresh_token);
       this.access_token = access_token;
       this.refresh_token = refresh_token;
+      this.expires_in = new Date().getTime() / 1000 + 3600;
+      sessionStorage.setItem("expires_in", JSON.stringify(this.expires_in));
     },
     logout() {
       this.user = null;

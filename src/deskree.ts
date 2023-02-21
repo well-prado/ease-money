@@ -6,9 +6,6 @@ import { useCookies } from "@vueuse/integrations/useCookies";
 const options: ClientOptions = {
   projectId: import.meta.env.VITE_APP_DESKREE_PROJECT_ID as string,
   axios: api,
-  // headers: {
-  //   Authorization: useCookies().get("access_token"),
-  // },
   userToken: useCookies().get("access_token"),
 };
 

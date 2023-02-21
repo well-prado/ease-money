@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { deskree, options } from "@/deskree";
-import router from "@/router";
-import { useUserStore } from "@/stores/user";
-import { isAxiosError } from "axios";
 import { onMounted, ref } from "vue";
+import router from "@/router";
+
+import { deskree, options } from "@/deskree";
+import { isAxiosError } from "axios";
+
+import { useUserStore } from "@/stores/user";
+
+import LoadingWidget from "@/components/ReusableComponents/LoadingWidget.vue";
 
 const registerUserObject = ref({
   fullName: "",
@@ -125,7 +129,10 @@ onMounted(() => {
               placeholder="Confirm Password"
             />
           </div>
-          <button type="submit">Entrar</button>
+          <button type="submit" :disabled="isLoading">
+            <LoadingWidget v-if="isLoading" />
+            <span v-else>Criar conta</span>
+          </button>
         </form>
         <p>
           Você já possui um cadastro?
@@ -212,6 +219,11 @@ onMounted(() => {
 
         &:hover {
           filter: brightness(0.9);
+        }
+
+        &:disabled {
+          cursor: not-allowed;
+          opacity: 0.6;
         }
       }
     }

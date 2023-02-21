@@ -2,10 +2,6 @@ import axios from "axios";
 import { AppError } from "./utils/AppError";
 
 const api = axios.create({
-  // headers: {
-  //   "Access-Control-Allow-Origin": "*",
-  //   client_id: import.meta.env.CLIENT_ID,
-  // },
   baseURL: import.meta.env.VITE_APP_BASE_URL,
 });
 

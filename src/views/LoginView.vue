@@ -3,10 +3,11 @@ import { onMounted, ref } from "vue";
 import router from "@/router";
 
 import { deskree, options } from "@/deskree";
+import { isAxiosError } from "axios";
+
+import { useUserStore } from "@/stores/user";
 
 import LoadingWidget from "@/components/ReusableComponents/LoadingWidget.vue";
-import { isAxiosError } from "axios";
-import { useUserStore } from "@/stores/user";
 
 const loginUserObject = ref({
   email: "",

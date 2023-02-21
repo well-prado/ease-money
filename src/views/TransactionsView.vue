@@ -10,7 +10,6 @@ import HeaderComponent from "@/components/Transactions/HeaderComponent.vue";
 import SearchForm from "@/components/Transactions/SearchForm.vue";
 import SummaryComponent from "@/components/Transactions/SummaryComponent.vue";
 import TableComponent from "@/components/Transactions/TableComponent.vue";
-import type { WhereDataType } from "@deskree/deskree-js/build/rest/types";
 
 export type Transaction = {
   uid: string;
@@ -24,8 +23,6 @@ export type Transaction = {
 const isLoading = ref(false);
 
 const transactions: Ref<Transaction[]> = ref([]);
-
-const token = computed(() => useUserStore().getAccessToken);
 
 const refreshToken = computed(() => useUserStore().getRefreshToken);
 
@@ -49,6 +46,8 @@ async function getAllTransactions() {
             value: user.value.uid,
           },
         ],
+        // "sorted[how]": "desc",
+        // "sorted[param]": "createdAt",
       });
     const transactionArray = response.data.data;
     transactions.value = transactionArray.map((transaction: any) => {
