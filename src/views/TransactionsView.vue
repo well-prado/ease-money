@@ -38,17 +38,17 @@ async function getAllTransactions() {
     }
     isLoading.value = true;
 
-    [{ attribute: "userUid", operator: "=", value: "Sdu2DTtF4bOlSfYJvC4X" }];
     const response = await deskree
       .database()
       .from("transactions")
       .get({
-        where: {
-          // @ts-expect-error: This is a bug in deskree-js
-          attribute: "userUid",
-          operator: "==",
-          value: user.value.uid,
-        },
+        where: [
+          {
+            attribute: "author",
+            operator: "==",
+            value: user.value.uid,
+          },
+        ],
       });
     const transactionArray = response.data.data;
     transactions.value = transactionArray.map((transaction: any) => {
