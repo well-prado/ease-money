@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
+
+import { deskree } from "@/deskree";
+import { isTokenExpired } from "@/composable/interceptor";
+import { useUserStore } from "@/stores/user";
 
 import { onClickOutside, onKeyStroke } from "@vueuse/core";
-import { deskree } from "@/deskree";
+
 import LoadingWidget from "../ReusableComponents/LoadingWidget.vue";
 
 const target = ref<HTMLElement | null>(null);
@@ -20,19 +24,29 @@ onKeyStroke("Escape", () => {
 //   console.log("Enter");
 // });
 
-const emit = defineEmits(["toggleModal"]);
+const emit = defineEmits(["toggleModal", "createNewTransaction"]);
 
 const isLoading = ref(false);
 
+const token = computed(() => useUserStore().getAccessToken);
+
+const refreshToken = computed(() => useUserStore().getRefreshToken);
+
 async function onSubmit() {
   try {
+    if (isTokenExpired(token.value)) {
+      await useUserStore().refreshToken(refreshToken.value);
+    }
     isLoading.value = true;
-    await deskree.database().from("transactions").create({
+    const response = await deskree.database().from("transactions").create({
       description: transactionObject.value.description,
       category: transactionObject.value.category,
       type: transactionObject.value.type,
       amount: transactionObject.value.amount,
     });
+    transactionObject.value.uid = response.data.data.uid;
+    transactionObject.value.createdAt = response.data.data.createdAt;
+    emit("createNewTransaction", transactionObject.value);
     emit("toggleModal");
   } catch (e) {
     console.error(e);
@@ -62,14 +76,9 @@ const transactionObject = ref({
   category: "",
   type: "" as any,
   amount: "",
+  uid: "",
+  createdAt: "",
 });
-
-const formatCurrency = (value: number) => {
-  return value.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-};
 </script>
 
 <template>
@@ -251,6 +260,10 @@ const formatCurrency = (value: number) => {
         font-size: 1rem;
         font-weight: 600;
         transition: filter 0.2s;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
         cursor: pointer;
 

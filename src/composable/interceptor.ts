@@ -40,5 +40,6 @@ export function isTokenExpired(token: string): boolean {
         .join("")
     );
   }
-  return decoded.exp < Date.now() / 1000;
+  const currentTime = new Date().getTime() / 1000;
+  return decoded.exp < currentTime;
 }

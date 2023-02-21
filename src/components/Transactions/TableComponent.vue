@@ -1,41 +1,23 @@
 <script setup lang="ts">
-import { onMounted, ref, type Ref } from "vue";
+import { computed } from "vue";
 
 import { deskree } from "@/deskree";
+import { isTokenExpired } from "@/composable/interceptor";
+
+import { useUserStore } from "@/stores/user";
 
 import moment from "moment";
+
 import LoadingWidget from "../ReusableComponents/LoadingWidget.vue";
 
-type Transaction = {
-  uid: string;
-  description: string;
-  category: string;
-  type: string;
-  amount: string;
-  createdAt: string;
-};
+import type { Transaction } from "@/views/TransactionsView.vue";
 
-const transactions: Ref<Transaction[]> = ref([]);
+defineProps<{
+  transactions: Transaction[];
+  isLoading: boolean;
+}>();
 
-const isLoading = ref(false);
-
-async function getAllTransactions() {
-  try {
-    isLoading.value = true;
-    const response = await deskree.database().from("transactions").get();
-    const transactionArray = response.data.data;
-    transactions.value = transactionArray.map((transaction: any) => {
-      return {
-        ...transaction.attributes,
-        uid: transaction.uid,
-      };
-    });
-  } catch (e) {
-    console.error(e);
-  } finally {
-    isLoading.value = false;
-  }
-}
+const emit = defineEmits(["deleteTransaction"]);
 
 const formatAmountToBrl = (amount: string) => {
   const newAmount = parseFloat(amount);
@@ -45,31 +27,57 @@ const formatAmountToBrl = (amount: string) => {
   });
 };
 
-onMounted(async () => {
-  await getAllTransactions();
-});
+const token = computed(() => useUserStore().getAccessToken);
+
+const refreshToken = computed(() => useUserStore().getRefreshToken);
+
+async function deleteTransaction(uid: string) {
+  try {
+    if (isTokenExpired(token.value)) {
+      await useUserStore().refreshToken(refreshToken.value);
+    }
+    await deskree.database().from("transactions").delete(uid);
+    emit("deleteTransaction", uid);
+  } catch (e) {
+    console.error(e);
+  }
+}
 </script>
 
 <template>
   <main class="table-container">
     <table v-if="!isLoading">
       <tbody>
-        <tr v-for="transaction in transactions" :key="transaction.uid">
-          <td>
-            <strong>{{ transaction.description }}</strong>
-          </td>
-          <td
-            :style="
-              transaction.type === 'income'
-                ? { color: '#00B37E' }
-                : { color: '#F75A68' }
-            "
+        <TransitionGroup name="slide">
+          <tr
+            v-for="(transaction, index) in transactions"
+            :key="index"
+            v-bind="$attrs"
           >
-            {{ formatAmountToBrl(transaction.amount) }}
-          </td>
-          <td>{{ transaction.category }}</td>
-          <td>{{ moment(transaction.createdAt).format("DD/MM/YYYY") }}</td>
-        </tr>
+            <td>
+              <strong>{{ transaction.description }}</strong>
+            </td>
+            <td
+              :style="
+                transaction.type === 'income'
+                  ? { color: '#00B37E' }
+                  : { color: '#F75A68' }
+              "
+            >
+              {{ formatAmountToBrl(transaction.amount) }}
+            </td>
+            <td>{{ transaction.category }}</td>
+            <td>{{ moment(transaction.createdAt).format("DD/MM/YYYY") }}</td>
+            <td>
+              <img
+                src="@/assets/close.svg"
+                alt="Delete transaction"
+                class="delete-icon"
+                @click="deleteTransaction(transaction.uid)"
+              />
+            </td>
+          </tr>
+        </TransitionGroup>
       </tbody>
     </table>
     <LoadingWidget width="4rem" height="4rem" class="loading" v-else />
@@ -89,7 +97,7 @@ onMounted(async () => {
     border-spacing: 0 0.5rem;
 
     td {
-      padding: 1.25rem 2rem;
+      padding: 1.25rem 1rem;
       background-color: $gray-700;
 
       &:first-child {
@@ -101,6 +109,17 @@ onMounted(async () => {
       &:last-child {
         border-top-right-radius: 6px;
         border-bottom-right-radius: 6px;
+      }
+
+      .delete-icon {
+        width: 1.5rem;
+        height: 1.5rem;
+        cursor: pointer;
+        transition: filter 0.2s;
+
+        &:hover {
+          filter: brightness(0.8);
+        }
       }
     }
   }

@@ -1,4 +1,41 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import type { Transaction } from "@/views/TransactionsView.vue";
+import { computed } from "vue";
+
+const props = defineProps<{
+  transactions: Transaction[];
+  isLoading: boolean;
+}>();
+
+const summary = computed(() => {
+  const summary = props.transactions.reduce(
+    (acc: any, transaction: Transaction) => {
+      if (transaction.type === "income") {
+        acc.income += Number(transaction.amount);
+        acc.total += Number(transaction.amount);
+      } else {
+        acc.outcome += Number(transaction.amount);
+        acc.total -= Number(transaction.amount);
+      }
+      return acc;
+    },
+    {
+      income: 0,
+      outcome: 0,
+      total: 0,
+    }
+  );
+  return summary;
+});
+
+const formatAmountToBrl = (amount: string) => {
+  const newAmount = parseFloat(amount);
+  return newAmount.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+};
+</script>
 
 <template>
   <main class="summary-container">
@@ -7,21 +44,21 @@
         <p>Entradas</p>
         <img src="@/assets/income.svg" alt="Income image" />
       </header>
-      <strong>+ R$ 17.400,00</strong>
+      <strong>+ {{ formatAmountToBrl(summary.income) }}</strong>
     </div>
     <div class="summary-card">
       <header>
         <p>Saídas</p>
         <img src="@/assets/outcome.svg" alt="Outcome image" />
       </header>
-      <strong>- R$ 1.259,00</strong>
+      <strong>- {{ formatAmountToBrl(summary.outcome) }}</strong>
     </div>
     <div class="summary-card highlight-background">
       <header>
         <p>Total</p>
         <img src="@/assets/total.svg" alt="Total image" />
       </header>
-      <strong>R$ 16.141,00</strong>
+      <strong>{{ formatAmountToBrl(summary.total) }}</strong>
     </div>
   </main>
 </template>

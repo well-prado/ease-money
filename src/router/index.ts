@@ -2,15 +2,13 @@
 import { useUserStore } from "@/stores/user";
 import { createRouter, createWebHistory } from "vue-router";
 
-import TransactionsView from "../views/TransactionsView.vue";
-
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: "/transactions",
       name: "Transactions",
-      component: TransactionsView,
+      component: () => import("../views/TransactionsView.vue"),
       meta: { requiresAuth: true },
     },
     {

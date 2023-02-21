@@ -20,6 +20,8 @@ const hoverButtonTip = ref();
 const isHovered = useElementHover(hoverButtonTip);
 
 const user: ComputedRef<User | null> = computed(() => useUserStore().getUser);
+
+const emit = defineEmits(["createNewTransaction"]);
 </script>
 
 <template>
@@ -33,7 +35,11 @@ const user: ComputedRef<User | null> = computed(() => useUserStore().getUser);
         <Avatar :image="user?.avatarUrl" @click="useUserStore().logout()" />
       </div>
     </div>
-    <ModalComponent v-if="isModalActive" @toggle-modal="toggleModal" />
+    <ModalComponent
+      v-if="isModalActive"
+      @toggle-modal="toggleModal"
+      @create-new-transaction="emit('createNewTransaction', $event)"
+    />
   </main>
 </template>
 
