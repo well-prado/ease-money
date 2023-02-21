@@ -10,6 +10,7 @@ import HeaderComponent from "@/components/Transactions/HeaderComponent.vue";
 import SearchForm from "@/components/Transactions/SearchForm.vue";
 import SummaryComponent from "@/components/Transactions/SummaryComponent.vue";
 import TableComponent from "@/components/Transactions/TableComponent.vue";
+import type { WhereDataType } from "@deskree/deskree-js/build/rest/types";
 
 export type Transaction = {
   uid: string;
@@ -28,13 +29,27 @@ const token = computed(() => useUserStore().getAccessToken);
 
 const refreshToken = computed(() => useUserStore().getRefreshToken);
 
+const user = computed(() => useUserStore().getUser);
+
 async function getAllTransactions() {
   try {
-    if (isTokenExpired(token.value)) {
+    if (isTokenExpired()) {
       await useUserStore().refreshToken(refreshToken.value);
     }
     isLoading.value = true;
-    const response = await deskree.database().from("transactions").get();
+
+    [{ attribute: "userUid", operator: "=", value: "Sdu2DTtF4bOlSfYJvC4X" }];
+    const response = await deskree
+      .database()
+      .from("transactions")
+      .get({
+        where: {
+          // @ts-expect-error: This is a bug in deskree-js
+          attribute: "userUid",
+          operator: "==",
+          value: user.value.uid,
+        },
+      });
     const transactionArray = response.data.data;
     transactions.value = transactionArray.map((transaction: any) => {
       return {

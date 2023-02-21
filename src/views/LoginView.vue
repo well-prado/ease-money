@@ -26,9 +26,6 @@ async function loginUser() {
       .from("users")
       .getByUID(login.data.uid);
     user["data"]["data"]["uid"] = login.data.uid;
-
-    console.log(login.data);
-
     useUserStore().setUser(user.data.data);
     useUserStore().saveTokens(login.data.idToken, login.data.refreshToken);
     router.replace({ name: "Transactions" });

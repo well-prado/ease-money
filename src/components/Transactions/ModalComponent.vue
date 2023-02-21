@@ -34,7 +34,7 @@ const refreshToken = computed(() => useUserStore().getRefreshToken);
 
 async function onSubmit() {
   try {
-    if (isTokenExpired(token.value)) {
+    if (isTokenExpired()) {
       await useUserStore().refreshToken(refreshToken.value);
     }
     isLoading.value = true;
