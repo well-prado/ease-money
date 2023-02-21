@@ -33,7 +33,7 @@ const refreshToken = computed(() => useUserStore().getRefreshToken);
 
 async function deleteTransaction(uid: string) {
   try {
-    if (isTokenExpired(token.value)) {
+    if (isTokenExpired()) {
       await useUserStore().refreshToken(refreshToken.value);
     }
     await deskree.database().from("transactions").delete(uid);
