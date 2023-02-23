@@ -27,8 +27,6 @@ const formatAmountToBrl = (amount: string) => {
   });
 };
 
-const token = computed(() => useUserStore().getAccessToken);
-
 const refreshToken = computed(() => useUserStore().getRefreshToken);
 
 async function deleteTransaction(uid: string) {

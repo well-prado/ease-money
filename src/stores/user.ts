@@ -1,6 +1,7 @@
 import { deskree } from "@/deskree";
 import router from "@/router";
 import { useCookies } from "@vueuse/integrations/useCookies";
+import moment from "moment";
 import { defineStore } from "pinia";
 
 export interface User {
@@ -57,17 +58,32 @@ export const useUserStore = defineStore("user", {
     },
     saveTokens(access_token: string, refresh_token: string) {
       useCookies().set("access_token", access_token);
-      useCookies().set("refresh_token", refresh_token);
+      useCookies().set("refresh_token", refresh_token, {
+        sameSite: true,
+        secure: true,
+        maxAge: 60 * 60 * 24 * 365 * 10, // 10 years
+      });
       this.access_token = access_token;
       this.refresh_token = refresh_token;
       this.expires_in = new Date().getTime() / 1000 + 3600;
       sessionStorage.setItem("expires_in", JSON.stringify(this.expires_in));
     },
     async refreshToken(refreshToken: string) {
+      if (refreshToken === undefined || refreshToken === null) {
+        router.replace({ name: "Login" });
+        return;
+      }
       const response = await deskree.auth().refreshToken(refreshToken);
       const { access_token, refresh_token } = response.data;
-      useCookies().set("access_token", access_token);
-      useCookies().set("refresh_token", refresh_token);
+      useCookies().set("access_token", access_token, {
+        sameSite: true,
+        secure: true,
+      });
+      useCookies().set("refresh_token", refresh_token, {
+        sameSite: true,
+        secure: true,
+        maxAge: 60 * 60 * 24 * 365 * 10, // 10 years
+      });
       this.access_token = access_token;
       this.refresh_token = refresh_token;
       this.expires_in = new Date().getTime() / 1000 + 3600;
