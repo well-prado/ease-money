@@ -58,8 +58,12 @@ async function getAllTransactions() {
     });
   } catch (e: any) {
     console.error(e);
-    if (e.response.data.errors[0].code === "403") {
+    const status = e.response.data.errors[0].code
+      ? e.response.data.errors[0].code
+      : e.response.data.errors.errors[0].code;
+    if (status === "403" || status === "401" || status === "400") {
       await useUserStore().refreshToken(refreshToken.value);
+      getAllTransactions();
     }
   } finally {
     isLoading.value = false;

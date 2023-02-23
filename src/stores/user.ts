@@ -68,12 +68,12 @@ export const useUserStore = defineStore("user", {
       sessionStorage.setItem("expires_in", JSON.stringify(this.expires_in));
     },
     async refreshToken(refreshToken: string) {
-      if (refreshToken === undefined || refreshToken === null) {
+      if (refreshToken === "undefined" || refreshToken === null) {
         router.replace({ name: "Login" });
         return;
       }
       const response = await deskree.auth().refreshToken(refreshToken);
-      const { access_token, refresh_token } = response.data;
+      const { access_token, refresh_token } = response.data.data;
       useCookies().set("access_token", access_token, {
         sameSite: true,
         secure: true,

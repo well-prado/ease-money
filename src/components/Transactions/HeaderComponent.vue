@@ -5,6 +5,7 @@ import { computed, ref, type ComputedRef } from "vue";
 
 import ModalComponent from "./ModalComponent.vue";
 import Avatar from "@/components/ReusableComponents/AvatarWidget.vue";
+import DropdownMenu from "../ReusableComponents/DropdownMenu.vue";
 
 const isModalActive = ref(false);
 
@@ -33,6 +34,7 @@ const emit = defineEmits(["createNewTransaction"]);
           {{ isHovered ? "Pressione CTRL + B" : "Nova Transação" }}
         </button>
         <Avatar :image="user?.avatarUrl" @click="useUserStore().logout()" />
+        <DropdownMenu title="Test" :is-open="false" />
       </div>
     </div>
     <ModalComponent
