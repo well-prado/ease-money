@@ -28,8 +28,6 @@ const emit = defineEmits(["toggleModal", "createNewTransaction"]);
 
 const isLoading = ref(false);
 
-const token = computed(() => useUserStore().getAccessToken);
-
 const refreshToken = computed(() => useUserStore().getRefreshToken);
 
 async function onSubmit() {
@@ -48,8 +46,11 @@ async function onSubmit() {
     transactionObject.value.createdAt = response.data.data.createdAt;
     emit("createNewTransaction", transactionObject.value);
     emit("toggleModal");
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
+    if (e.response.data.errors[0].code === "403") {
+      await useUserStore().refreshToken(refreshToken.value);
+    }
   } finally {
     isLoading.value = false;
   }

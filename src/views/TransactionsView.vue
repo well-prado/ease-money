@@ -56,8 +56,11 @@ async function getAllTransactions() {
         uid: transaction.uid,
       };
     });
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
+    if (e.response.data.errors[0].code === "403") {
+      await useUserStore().refreshToken(refreshToken.value);
+    }
   } finally {
     isLoading.value = false;
   }

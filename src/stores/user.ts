@@ -1,7 +1,6 @@
 import { deskree } from "@/deskree";
 import router from "@/router";
 import { useCookies } from "@vueuse/integrations/useCookies";
-import moment from "moment";
 import { defineStore } from "pinia";
 
 export interface User {

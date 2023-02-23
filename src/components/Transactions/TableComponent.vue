@@ -36,8 +36,11 @@ async function deleteTransaction(uid: string) {
     }
     await deskree.database().from("transactions").delete(uid);
     emit("deleteTransaction", uid);
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
+    if (e.response.data.errors[0].code === "403") {
+      await useUserStore().refreshToken(refreshToken.value);
+    }
   }
 }
 </script>
