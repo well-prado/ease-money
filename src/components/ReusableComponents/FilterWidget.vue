@@ -12,12 +12,14 @@ const props = defineProps({
   },
 });
 
-const selected = ref(props.selected);
+const selected = ref();
 
 defineEmits(["filterTransactions"]);
 
 onMounted(() => {
   // emit("filterTransactions", selected.value);
+  console.log(props.options);
+  console.log(props.selected);
 });
 </script>
 
@@ -28,6 +30,7 @@ onMounted(() => {
         v-for="option in props.options"
         :value="option.value"
         :key="option.text"
+        :selected="option.text === props.selected"
       >
         {{ option.text }}
       </option>

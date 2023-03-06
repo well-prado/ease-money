@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, type Ref } from "vue";
+import { capitalize, computed, onMounted, ref, type Ref } from "vue";
 
 import { deskree } from "@/deskree";
 import { isTokenExpired } from "@/composable/interceptor";
@@ -10,6 +10,7 @@ import HeaderComponent from "@/components/Transactions/HeaderComponent.vue";
 import SearchForm from "@/components/Transactions/SearchForm.vue";
 import SummaryComponent from "@/components/Transactions/SummaryComponent.vue";
 import TableComponent from "@/components/Transactions/TableComponent.vue";
+import FilterWidget from "@/components/ReusableComponents/FilterWidget.vue";
 
 export type Transaction = {
   uid: string;
@@ -46,8 +47,8 @@ async function getAllTransactions() {
             value: user.value.uid,
           },
         ],
-        // "sorted[how]": "desc",
-        // "sorted[param]": "createdAt",
+        "sorted[how]": "asc",
+        "sorted[param]": "createdAt",
       });
     const transactionArray = response.data.data;
     transactions.value = transactionArray.map((transaction: any) => {
@@ -62,8 +63,11 @@ async function getAllTransactions() {
       ? e.response.data.errors[0].code
       : e.response.data.errors.errors[0].code;
     if (status === "403" || status === "401" || status === "400") {
-      await useUserStore().refreshToken(refreshToken.value);
-      getAllTransactions();
+      const response = await useUserStore().refreshToken(refreshToken.value);
+      console.log(response);
+      if (response.status === 200) {
+        window.location.reload();
+      }
     }
   } finally {
     isLoading.value = false;
@@ -80,8 +84,28 @@ function deleteTransaction(uid: string) {
   );
 }
 
+const monthFilterOptions = [
+  { text: "Janeiro", value: "01" },
+  { text: "Fevereiro", value: "02" },
+  { text: "Março", value: "03" },
+  { text: "Abril", value: "04" },
+  { text: "Maio", value: "05" },
+  { text: "Junho", value: "06" },
+  { text: "Julho", value: "07" },
+  { text: "Agosto", value: "08" },
+  { text: "Setembro", value: "09" },
+  { text: "Outubro", value: "10" },
+  { text: "Novembro", value: "11" },
+  { text: "Dezembro", value: "12" },
+];
+
+const currentMonth = capitalize(
+  new Date().toLocaleString("default", { month: "long" })
+);
+
 onMounted(async () => {
   await getAllTransactions();
+  console.log(currentMonth);
 });
 </script>
 
@@ -90,6 +114,7 @@ onMounted(async () => {
     <HeaderComponent @create-new-transaction="createNewTransaction($event)" />
     <SummaryComponent :transactions="transactions" :is-loading="isLoading" />
     <SearchForm />
+    <FilterWidget :options="monthFilterOptions" :selected="currentMonth" />
     <TableComponent
       :transactions="transactions"
       :is-loading="isLoading"
